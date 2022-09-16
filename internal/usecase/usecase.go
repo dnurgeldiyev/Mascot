@@ -20,6 +20,18 @@ func NewUCase(b *balance.StorageBalance, t *transaction.StorageTransaction) *UCa
 
 }
 
+func (uc UCase) AddPlayerWithBalance(playerName string, balance int) (err error) {
+
+	err = uc.Balance.AddPlayerAndBalance(playerName, balance)
+
+	if err != nil {
+		err = ErrBadRequest
+		return
+	}
+
+	return
+}
+
 func (uc UCase) GetBalance(playerName string) (item *entity.Balance, err error) {
 
 	item = &entity.Balance{}

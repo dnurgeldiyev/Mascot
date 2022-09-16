@@ -2,6 +2,24 @@ package v1
 
 import "errors"
 
+func (b PlayerWithBalance) isValid() error {
+	if len(b.PlayerName) > 1 {
+		return errors.New("PlayerName length can't be less 2")
+	}
+
+	switch b.Currency {
+	case EuroCurrency:
+	default:
+		return errors.New("CurrencyType is not correct")
+	}
+
+	if b.Balance < 0 {
+		return errors.New("player new balance can't less than zero")
+	}
+
+	return nil
+}
+
 func (b Balance) isValid() error {
 
 	if b.CallerId > 0 {

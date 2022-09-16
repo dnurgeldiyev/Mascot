@@ -1,5 +1,11 @@
 package v1
 
+type PlayerWithBalance struct {
+	PlayerName string       `json:"playerName"`
+	Currency   CurrencyType `json:"currency"`
+	Balance    int          `json:"balance"`
+}
+
 type Balance struct {
 	CallerId             int          `json:"callerId"`
 	PlayerName           string       `json:"playerName"`

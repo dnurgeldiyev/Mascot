@@ -8,7 +8,7 @@ import (
 
 type StorageTransaction struct {
 	m   map[entity.TransactionKey]entity.Transaction
-	mtx sync.Mutex
+	mtx sync.RWMutex
 }
 
 func NewStorageTransaction() *StorageTransaction {
@@ -18,7 +18,7 @@ func NewStorageTransaction() *StorageTransaction {
 	return &s
 }
 
-func (s StorageTransaction) GetTransaction(transactionRef, sessionId string) (item *entity.Transaction, err error) {
+func (s *StorageTransaction) GetTransaction(transactionRef, sessionId string) (item *entity.Transaction, err error) {
 
 	item = &entity.Transaction{}
 
@@ -26,6 +26,8 @@ func (s StorageTransaction) GetTransaction(transactionRef, sessionId string) (it
 		TransactionRef: transactionRef,
 		SessionID:      sessionId,
 	}
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
 
 	v, ok := s.m[key]
 	if !ok {
@@ -38,7 +40,7 @@ func (s StorageTransaction) GetTransaction(transactionRef, sessionId string) (it
 	return
 }
 
-func (s StorageTransaction) AddTransaction(playerName, transactionRef, sessionId string, withdraw, deposit int, rollBackStatus bool) (item entity.Transaction, err error) {
+func (s *StorageTransaction) AddTransaction(playerName, transactionRef, sessionId string, withdraw, deposit int, rollBackStatus bool) (item entity.Transaction, err error) {
 
 	item = entity.Transaction{
 		PlayerName:     playerName,
@@ -54,12 +56,15 @@ func (s StorageTransaction) AddTransaction(playerName, transactionRef, sessionId
 		SessionID:      sessionId,
 	}
 
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
 	s.m[key] = item
 
 	return
 }
 
-func (s StorageTransaction) UpdateStatusTransaction(transactionRef, sessionId string, transactionStatus bool) (item *entity.Transaction, err error) {
+func (s *StorageTransaction) UpdateStatusTransaction(transactionRef, sessionId string, transactionStatus bool) (item *entity.Transaction, err error) {
 
 	item = &entity.Transaction{}
 
@@ -67,6 +72,9 @@ func (s StorageTransaction) UpdateStatusTransaction(transactionRef, sessionId st
 		TransactionRef: transactionRef,
 		SessionID:      sessionId,
 	}
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
 	v, ok := s.m[key]
 	if !ok {

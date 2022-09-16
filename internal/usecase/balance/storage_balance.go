@@ -3,12 +3,13 @@ package balance
 import (
 	"dovran/mascot/internal/entity"
 	"errors"
+	"fmt"
 	"sync"
 )
 
 type StorageBalance struct {
 	m   map[string]entity.Balance
-	mtx sync.Mutex
+	mtx sync.RWMutex
 }
 
 func NewStorageBalance() *StorageBalance {
@@ -18,9 +19,12 @@ func NewStorageBalance() *StorageBalance {
 	return &s
 }
 
-func (s StorageBalance) GetBalance(playerName string) (item *entity.Balance, err error) {
+func (s *StorageBalance) GetBalance(playerName string) (item *entity.Balance, err error) {
 
 	item = &entity.Balance{}
+
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
 
 	v, ok := s.m[playerName]
 	if !ok {
@@ -35,8 +39,11 @@ func (s StorageBalance) GetBalance(playerName string) (item *entity.Balance, err
 	return
 }
 
-func (s StorageBalance) UpdateBalance(playerName string, balance, freeRoundsLeft int) (item *entity.Balance, err error) {
+func (s *StorageBalance) UpdateBalance(playerName string, balance, freeRoundsLeft int) (item *entity.Balance, err error) {
 	item = &entity.Balance{}
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
 	_, ok := s.m[playerName]
 	if !ok {
@@ -53,6 +60,26 @@ func (s StorageBalance) UpdateBalance(playerName string, balance, freeRoundsLeft
 	item.PlayerName = playerName
 	item.Balance = balance
 	item.FreeRoundsLeft = freeRoundsLeft
+
+	return
+}
+
+func (s *StorageBalance) AddPlayerAndBalance(playerName string, balance int) (err error) {
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	_, ok := s.m[playerName]
+	if ok {
+		err = errors.New(fmt.Sprintf("Player with name: %s exist", playerName))
+		return
+	}
+
+	s.m[playerName] = entity.Balance{
+		PlayerName:     playerName,
+		Balance:        balance,
+		FreeRoundsLeft: 0,
+	}
 
 	return
 }

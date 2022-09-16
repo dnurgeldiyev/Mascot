@@ -6,11 +6,13 @@ import (
 
 type (
 	UseCase interface {
+		AddPlayerWithBalance(playerName string, balance int) (err error)
 		GetBalance(playerName string) (item *entity.Balance, err error)
 		WithDrawAndDeposit(drawDeposit entity.DrawAndDepositDTO) (item *entity.Balance, err error)
 		RollBackTransaction(rollback entity.RollBackTransactionDTO) (err error)
 	}
 	Balance interface {
+		AddPlayerAndBalance(playerName string, balance int) (err error)
 		GetBalance(playerName string) (item *entity.Balance, err error)
 		UpdateBalance(playerName string, balance, freeRoundsLeft int) (item *entity.Balance, err error)
 	}

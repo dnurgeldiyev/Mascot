@@ -20,22 +20,52 @@ func methods(handler *gin.RouterGroup, u usecase.UseCase, l logger.Interface) {
 		l: l,
 	}
 
+	handler.POST("/add-player-balance", r.addPlayerWithBalance)
 	handler.POST("/get-balance", r.getBalance)
 	handler.POST("/with-draw-deposit", r.withDrawAndDeposit)
 	handler.POST("/rollback-transaction", r.rollBackTransaction)
 
 }
 
+func (r *routes) addPlayerWithBalance(c *gin.Context) {
+
+	var playerWithBalance PlayerWithBalance
+	var err error
+
+	if err = c.ShouldBindJSON(&playerWithBalance); err != nil {
+		r.l.Error(err, "http-v1-addPlayerWithBalance")
+		errorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err = playerWithBalance.isValid(); err != nil {
+		r.l.Error(err, "http-v1-playerWithBalance.isValid")
+		errorResponse(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	err = r.u.AddPlayerWithBalance(playerWithBalance.PlayerName, playerWithBalance.Balance)
+	if err != nil {
+		r.l.Error(err, "http-v1-getBalance r.u.GetBalance")
+		errorResponse(c, http.StatusBadRequest, "player not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, `{}`)
+
+}
 func (r *routes) getBalance(c *gin.Context) {
 
 	var balance Balance
-	if err := c.ShouldBindJSON(&balance); err != nil {
+	var err error
+
+	if err = c.ShouldBindJSON(&balance); err != nil {
 		r.l.Error(err, "http-v1-getBalance")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if err := balance.isValid(); err != nil {
+	if err = balance.isValid(); err != nil {
 		r.l.Error(err, "http-v1-balance.isValid")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
@@ -55,15 +85,17 @@ func (r *routes) getBalance(c *gin.Context) {
 
 }
 func (r *routes) withDrawAndDeposit(c *gin.Context) {
-	var drawAndDeposit DrawAndDeposit
 
-	if err := c.ShouldBindJSON(&drawAndDeposit); err != nil {
+	var drawAndDeposit DrawAndDeposit
+	var err error
+
+	if err = c.ShouldBindJSON(&drawAndDeposit); err != nil {
 		r.l.Error(err, "http-v1-withDrawAndDeposit")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if err := drawAndDeposit.isValid(); err != nil {
+	if err = drawAndDeposit.isValid(); err != nil {
 		r.l.Error(err, "http-v1-drawAndDeposit.isValid")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
@@ -103,14 +135,15 @@ func (r *routes) withDrawAndDeposit(c *gin.Context) {
 func (r *routes) rollBackTransaction(c *gin.Context) {
 
 	var rollBackTransaction RollBackTransaction
+	var err error
 
-	if err := c.ShouldBindJSON(&rollBackTransaction); err != nil {
+	if err = c.ShouldBindJSON(&rollBackTransaction); err != nil {
 		r.l.Error(err, "http-v1-rollBackTransaction")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if err := rollBackTransaction.isValid(); err != nil {
+	if err = rollBackTransaction.isValid(); err != nil {
 		r.l.Error(err, "http-v1-rollBackTransaction.isValid")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
@@ -124,7 +157,7 @@ func (r *routes) rollBackTransaction(c *gin.Context) {
 		SessionAlternativeId: rollBackTransaction.SessionAlternativeId,
 		RoundId:              rollBackTransaction.RoundId,
 	}
-	err := r.u.RollBackTransaction(dtoRollBack)
+	err = r.u.RollBackTransaction(dtoRollBack)
 	if err != nil {
 		r.l.Error(err, "http-v1-getBalance r.u.RollBackTransaction")
 		errorResponse(c, http.StatusBadRequest, "invalid request")
