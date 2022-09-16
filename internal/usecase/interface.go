@@ -1,15 +1,14 @@
 package usecase
 
 import (
-	"dovran/mascot/internal/controller/v1"
 	"dovran/mascot/internal/entity"
 )
 
 type (
 	UseCase interface {
-		GetBalance(playerName string) (item *v1.BalanceResponse, err error)
-		WithDrawAndDeposit(drawDeposit v1.DrawAndDeposit) (item *v1.DrawAndDepositResponse, err error)
-		RollBackTransaction(rollback v1.RollBackTransaction) (err error)
+		GetBalance(playerName string) (item *entity.Balance, err error)
+		WithDrawAndDeposit(drawDeposit entity.DrawAndDepositDTO) (item *entity.Balance, err error)
+		RollBackTransaction(rollback entity.RollBackTransactionDTO) (err error)
 	}
 	Balance interface {
 		GetBalance(playerName string) (item *entity.Balance, err error)

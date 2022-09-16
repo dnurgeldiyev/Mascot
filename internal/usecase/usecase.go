@@ -1,10 +1,9 @@
 package usecase
 
 import (
-	"dovran/mascot/internal/controller/v1"
+	"dovran/mascot/internal/entity"
 	"dovran/mascot/internal/usecase/balance"
 	"dovran/mascot/internal/usecase/transaction"
-	"github.com/google/uuid"
 )
 
 type UCase struct {
@@ -21,25 +20,23 @@ func NewUCase(b *balance.StorageBalance, t *transaction.StorageTransaction) *UCa
 
 }
 
-func (uc UCase) GetBalance(playerName string) (item *v1.BalanceResponse, err error) {
+func (uc UCase) GetBalance(playerName string) (item *entity.Balance, err error) {
 
-	item = &v1.BalanceResponse{}
+	item = &entity.Balance{}
 
-	getBalance, err := uc.Balance.GetBalance(playerName)
+	item, err = uc.Balance.GetBalance(playerName)
+
 	if err != nil {
 		err = ErrNotFound
 		return
 	}
 
-	item.Balance = getBalance.Balance
-	item.FreeRoundsLeft = getBalance.FreeRoundsLeft
-
 	return
 }
 
-func (uc UCase) WithDrawAndDeposit(drawDeposit v1.DrawAndDeposit) (item *v1.DrawAndDepositResponse, err error) {
+func (uc UCase) WithDrawAndDeposit(drawDeposit entity.DrawAndDepositDTO) (item *entity.Balance, err error) {
 
-	item = &v1.DrawAndDepositResponse{}
+	item = &entity.Balance{}
 
 	getBalance, err := uc.Balance.GetBalance(drawDeposit.PlayerName)
 	if err != nil {
@@ -65,7 +62,7 @@ func (uc UCase) WithDrawAndDeposit(drawDeposit v1.DrawAndDeposit) (item *v1.Draw
 		return
 	}
 
-	updateBalance, err := uc.Balance.UpdateBalance(getBalance.PlayerName, getBalance.Balance-drawDeposit.WithDraw+drawDeposit.Deposit, drawDeposit.ChargeFreeRounds)
+	item, err = uc.Balance.UpdateBalance(getBalance.PlayerName, getBalance.Balance-drawDeposit.WithDraw+drawDeposit.Deposit, drawDeposit.ChargeFreeRounds)
 	if err != nil {
 		err = ErrInternalServerError
 
@@ -77,14 +74,10 @@ func (uc UCase) WithDrawAndDeposit(drawDeposit v1.DrawAndDeposit) (item *v1.Draw
 		return
 	}
 
-	item.NewBalance = updateBalance.Balance
-	item.TransactionId = uuid.NewString()
-	item.FreeRoundsLeft = updateBalance.FreeRoundsLeft
-
 	return
 }
 
-func (uc UCase) RollBackTransaction(rollback v1.RollBackTransaction) (err error) {
+func (uc UCase) RollBackTransaction(rollback entity.RollBackTransactionDTO) (err error) {
 
 	getTransaction, err := uc.Transaction.GetTransaction(rollback.TransactionRef, rollback.SessionId)
 	if err != nil {

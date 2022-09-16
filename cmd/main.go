@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"dovran/mascot/config"

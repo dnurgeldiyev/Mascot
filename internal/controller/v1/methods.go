@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"dovran/mascot/internal/entity"
 	"dovran/mascot/internal/usecase"
 	"dovran/mascot/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 )
 
@@ -46,7 +48,10 @@ func (r *routes) getBalance(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getBalance)
+	c.JSON(http.StatusOK, BalanceResponse{
+		Balance:        getBalance.Balance,
+		FreeRoundsLeft: getBalance.FreeRoundsLeft,
+	})
 
 }
 func (r *routes) withDrawAndDeposit(c *gin.Context) {
@@ -64,14 +69,35 @@ func (r *routes) withDrawAndDeposit(c *gin.Context) {
 		return
 	}
 
-	resDrawAndDeposit, err := r.u.WithDrawAndDeposit(drawAndDeposit)
+	dtoDrawAndDeposit := entity.DrawAndDepositDTO{
+		CallerId:             drawAndDeposit.CallerId,
+		PlayerName:           drawAndDeposit.PlayerName,
+		WithDraw:             drawAndDeposit.WithDraw,
+		Deposit:              drawAndDeposit.Deposit,
+		Currency:             string(drawAndDeposit.Currency),
+		TransactionRef:       drawAndDeposit.TransactionRef,
+		GameRoundRef:         drawAndDeposit.GameRoundRef,
+		GameId:               drawAndDeposit.GameId,
+		Source:               drawAndDeposit.Source,
+		Reason:               string(drawAndDeposit.Reason),
+		SessionId:            drawAndDeposit.SessionId,
+		SessionAlternativeId: drawAndDeposit.SessionAlternativeId,
+		BonusId:              drawAndDeposit.BonusId,
+		ChargeFreeRounds:     drawAndDeposit.ChargeFreeRounds,
+	}
+
+	resDrawAndDeposit, err := r.u.WithDrawAndDeposit(dtoDrawAndDeposit)
 	if err != nil {
 		r.l.Error(err, "http-v1-getBalance r.u.WithDrawAndDeposit")
 		errorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
 
-	c.JSON(http.StatusOK, resDrawAndDeposit)
+	c.JSON(http.StatusOK, DrawAndDepositResponse{
+		NewBalance:     resDrawAndDeposit.Balance,
+		TransactionId:  uuid.NewString(),
+		FreeRoundsLeft: resDrawAndDeposit.FreeRoundsLeft,
+	})
 
 }
 func (r *routes) rollBackTransaction(c *gin.Context) {
@@ -89,8 +115,16 @@ func (r *routes) rollBackTransaction(c *gin.Context) {
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
-
-	err := r.u.RollBackTransaction(rollBackTransaction)
+	dtoRollBack := entity.RollBackTransactionDTO{
+		CallerId:             rollBackTransaction.CallerId,
+		PlayerName:           rollBackTransaction.PlayerName,
+		TransactionRef:       rollBackTransaction.TransactionRef,
+		GameId:               rollBackTransaction.GameId,
+		SessionId:            rollBackTransaction.SessionId,
+		SessionAlternativeId: rollBackTransaction.SessionAlternativeId,
+		RoundId:              rollBackTransaction.RoundId,
+	}
+	err := r.u.RollBackTransaction(dtoRollBack)
 	if err != nil {
 		r.l.Error(err, "http-v1-getBalance r.u.RollBackTransaction")
 		errorResponse(c, http.StatusBadRequest, "invalid request")
