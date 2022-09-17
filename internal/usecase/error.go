@@ -3,9 +3,9 @@ package usecase
 import "errors"
 
 var (
-	ErrBadRequest          = errors.New("bad request")
-	ErrForbidden           = errors.New("forbidden")
-	ErrNotFound            = errors.New("not found")
-	ErrConflict            = errors.New("conflict")
-	ErrInternalServerError = errors.New("internal server error")
+	ErrBadRequest          = errors.New("ErrBadRequest")
+	ErrNotFound            = errors.New("ErrNotFound")
+	ErrConflict            = errors.New("ErrConflict")
+	ErrInternalServerError = errors.New("ErrInternalServerError")
+	ErrNotEnoughMoneyCode  = errors.New("ErrNotEnoughMoneyCode")
 )

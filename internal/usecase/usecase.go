@@ -63,18 +63,20 @@ func (uc UCase) WithDrawAndDeposit(drawDeposit entity.DrawAndDepositDTO) (item *
 	}
 
 	if drawDeposit.WithDraw > getBalance.Balance {
-		err = ErrBadRequest
+		err = ErrNotEnoughMoneyCode
 		return
 	}
 
 	_, err = uc.Transaction.AddTransaction(drawDeposit.PlayerName, drawDeposit.TransactionRef, drawDeposit.SessionId, drawDeposit.WithDraw, drawDeposit.Deposit, false)
 
 	if err != nil {
-		err = ErrForbidden
+		err = ErrInternalServerError
 		return
 	}
 
-	item, err = uc.Balance.UpdateBalance(getBalance.PlayerName, getBalance.Balance-drawDeposit.WithDraw+drawDeposit.Deposit, drawDeposit.ChargeFreeRounds)
+	newBalance := (getBalance.Balance - drawDeposit.WithDraw) + drawDeposit.Deposit
+
+	item, err = uc.Balance.UpdateBalance(getBalance.PlayerName, newBalance, drawDeposit.ChargeFreeRounds)
 	if err != nil {
 		err = ErrInternalServerError
 
@@ -96,7 +98,7 @@ func (uc UCase) RollBackTransaction(rollback entity.RollBackTransactionDTO) (err
 	if err != nil {
 		_, err = uc.Transaction.AddTransaction(rollback.PlayerName, rollback.TransactionRef, rollback.SessionId, 0, 0, true)
 		if err != nil {
-			err = ErrForbidden
+			err = ErrInternalServerError
 			return
 		}
 		return
@@ -109,19 +111,21 @@ func (uc UCase) RollBackTransaction(rollback entity.RollBackTransactionDTO) (err
 
 	_, err = uc.Transaction.UpdateStatusTransaction(rollback.TransactionRef, rollback.SessionId, true)
 	if err != nil {
-		err = ErrForbidden
+		err = ErrInternalServerError
 		return
 	}
 
 	getBalance, err := uc.Balance.GetBalance(getTransaction.PlayerName)
 	if err != nil {
-		err = ErrForbidden
+		err = ErrNotFound
 		return
 	}
 
-	_, err = uc.Balance.UpdateBalance(getTransaction.PlayerName, (getBalance.Balance-getTransaction.Deposit)+getTransaction.WithDraw, getBalance.FreeRoundsLeft)
+	newBalance := (getBalance.Balance - getTransaction.Deposit) + getTransaction.WithDraw
+
+	_, err = uc.Balance.UpdateBalance(getTransaction.PlayerName, newBalance, getBalance.FreeRoundsLeft)
 	if err != nil {
-		err = ErrForbidden
+		err = ErrInternalServerError
 		return
 	}
 
