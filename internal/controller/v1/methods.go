@@ -121,7 +121,7 @@ func (r *routes) withDrawAndDeposit(c *gin.Context) {
 	resDrawAndDeposit, err := r.u.WithDrawAndDeposit(dtoDrawAndDeposit)
 	if err != nil {
 		r.l.Error(err, "http-v1-getBalance r.u.WithDrawAndDeposit")
-		errorResponse(c, http.StatusBadRequest, "invalid request")
+		errorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -160,7 +160,7 @@ func (r *routes) rollBackTransaction(c *gin.Context) {
 	err = r.u.RollBackTransaction(dtoRollBack)
 	if err != nil {
 		r.l.Error(err, "http-v1-getBalance r.u.RollBackTransaction")
-		errorResponse(c, http.StatusBadRequest, "invalid request")
+		errorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 

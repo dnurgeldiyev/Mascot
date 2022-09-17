@@ -84,6 +84,8 @@ func (s *StorageTransaction) UpdateStatusTransaction(transactionRef, sessionId s
 
 	v.RollBackStatus = transactionStatus
 
+	s.m[key] = v
+
 	item = &v
 
 	return

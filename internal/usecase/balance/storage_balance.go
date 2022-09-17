@@ -71,7 +71,7 @@ func (s *StorageBalance) AddPlayerAndBalance(playerName string, balance int) (er
 
 	_, ok := s.m[playerName]
 	if ok {
-		err = errors.New(fmt.Sprintf("Player with name: %s exist", playerName))
+		err = errors.New(fmt.Sprintf("player with name: %s exist", playerName))
 		return
 	}
 

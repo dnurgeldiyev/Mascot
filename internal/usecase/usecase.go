@@ -92,12 +92,8 @@ func (uc UCase) WithDrawAndDeposit(drawDeposit entity.DrawAndDepositDTO) (item *
 func (uc UCase) RollBackTransaction(rollback entity.RollBackTransactionDTO) (err error) {
 
 	getTransaction, err := uc.Transaction.GetTransaction(rollback.TransactionRef, rollback.SessionId)
-	if err != nil {
-		err = ErrForbidden
-		return
-	}
 
-	if getTransaction == nil {
+	if err != nil {
 		_, err = uc.Transaction.AddTransaction(rollback.PlayerName, rollback.TransactionRef, rollback.SessionId, 0, 0, true)
 		if err != nil {
 			err = ErrForbidden
@@ -106,7 +102,24 @@ func (uc UCase) RollBackTransaction(rollback entity.RollBackTransactionDTO) (err
 		return
 	}
 
+	if getTransaction.RollBackStatus {
+		err = ErrConflict
+		return
+	}
+
 	_, err = uc.Transaction.UpdateStatusTransaction(rollback.TransactionRef, rollback.SessionId, true)
+	if err != nil {
+		err = ErrForbidden
+		return
+	}
+
+	getBalance, err := uc.Balance.GetBalance(getTransaction.PlayerName)
+	if err != nil {
+		err = ErrForbidden
+		return
+	}
+
+	_, err = uc.Balance.UpdateBalance(getTransaction.PlayerName, (getBalance.Balance-getTransaction.Deposit)+getTransaction.WithDraw, getBalance.FreeRoundsLeft)
 	if err != nil {
 		err = ErrForbidden
 		return
