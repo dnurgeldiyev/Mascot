@@ -67,8 +67,3 @@ type SpinDetail struct {
 }
 
 type Reason string
-
-const (
-	GamePlay      Reason = "GAME_PLAY"
-	GamePlayFinal Reason = "GAME_PLAY_FINAL"
-)

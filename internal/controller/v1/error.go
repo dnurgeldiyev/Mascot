@@ -14,7 +14,6 @@ var (
 	ErrIllegalCurrencyCode    = errors.New("ErrIllegalCurrencyCode")
 	ErrNegativeDepositCode    = errors.New("ErrNegativeDepositCode")
 	ErrNegativeWithdrawalCode = errors.New("ErrNegativeWithdrawalCode")
-	//ErrSpendingBudgetExceeded = errors.New("ErrSpendingBudgetExceeded")
 )
 
 func errorResponse(c *gin.Context, err error) {
